@@ -1,3 +1,13 @@
+.. image:: https://travis-ci.org/pglass/voluptuary.svg?branch=master
+    :target: https://travis-ci.org/pglass/voluptuary
+
+.. image:: https://img.shields.io/pypi/v/voluptuary.svg
+    :target: https://pypi.python.org/pypi/voluptuary
+
+.. image:: https://img.shields.io/pypi/pyversions/voluptuary.svg
+    :target: https://pypi.python.org/pypi/voluptuary
+
+
 ============
  voluptuary
 ============
@@ -56,7 +66,7 @@ Aside from that, this library follows the following principles:
 
 1. Familiar behavior: This library strives to match the validation behavior of
    the (Draft 4) validator from `jsonschema`_.
-2. Pro-active testing: This library includes and actively runs a comprehensive
+2. Proactive testing: This library includes and actively runs a comprehensive
    suite of tests to ensure behavior in the first point.
 3. Documentation: This library includes a list outlining support for JSON
    Schema features/keywords, and strive to keep this up to date.
