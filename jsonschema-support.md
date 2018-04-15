@@ -26,11 +26,11 @@ Y         | `string` type          | `{ "type": "string" }`
 
 Supported | Feature                | Example
 --------- | ---------------------- | -------
-n         | `multipleOf`           |
-n         | `maximum`              |
-n         | `minimum`              |
-n         | `exclusiveMaximum`     |
-n         | `exclusiveMinimum`     |
+Y         | `multipleOf`           | `{"multipleOf": 2}`
+Y         | `minimum`              | `{"minimum": 1.1}`
+Y         | `maximum`              | `{"maximum": 3.5}`
+Y         | `exclusiveMinimum`     | `{"exclusiveMinimum": True}`
+Y         | `exclusiveMaximum`     | `{"exclusiveMaximum": True}`
 
 
 ### [strings](https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.2)
@@ -38,7 +38,7 @@ n         | `exclusiveMinimum`     |
 Supported | Feature       | Example
 --------- | ------------- | -------
 Y         | `string` type | `{ "type": "string" }`
-Y         | `minLength`   | `{ "minLength": 2 }1
+Y         | `minLength`   | `{ "minLength": 2 }`
 Y         | `maxLength`   | `{ "maxLength": 5 }`
 n         | Pattern       |
 

@@ -1,57 +1,8 @@
 import voluptuous
-import jsonschema
 
-from voluptuary import to_voluptuous, to_string
-
-
-def check_jsonschema_validation(schema, target, should_validate):
-    return check_validation(
-        'jsonschema.Draft4Validator',
-        jsonschema.Draft4Validator(schema).validate,
-        jsonschema.ValidationError,
-        schema,
-        target,
-        should_validate,
-    )
-
-
-def check_voluptuous_validation(schema, target, should_validate):
-    return check_validation(
-        'voluptuous.Schema',
-        voluptuous.Schema(schema),
-        voluptuous.Invalid,
-        schema,
-        target,
-        should_validate,
-    )
-
-
-def check_validation(
-    validator_name, validator, validator_exception, schema, target,
-    should_validate
-):
-    try:
-        validator(target)
-    except validator_exception as e:
-        if should_validate:
-            msg = (
-                'Schema failed to validate target:\nvalidator=%s\n'
-                'schema=%r\nschema-str=%s\ntarget=%s' %
-                (validator_name, schema, to_string(schema), target)
-            )
-            raise Exception("%s\nerror: %s" % (msg, e))
-    else:
-        if not should_validate:
-            msg = (
-                'Schema erroneously validated the target, but should not '
-                'have validated:\n'
-                'validator  = %s\n'
-                'schema     = %r\n'
-                'schema-str = %s\n'
-                'target     = %s' %
-                (validator_name, schema, to_string(schema), target)
-            )
-            raise Exception(msg)
+from voluptuary import to_voluptuous
+from .conversion import check_jsonschema_validation
+from .conversion import check_voluptuous_validation
 
 
 def test_empty_schema():
@@ -121,68 +72,6 @@ def test_type_boolean_schema():
         check_voluptuous_validation(schema_out, target, should_validate=False)
 
 
-def test_type_integer_schema():
-    schema_in = {'type': 'integer'}
-    schema_out = to_voluptuous(schema_in)
-    for target in (
-        -1,
-        0,
-        1,
-        11234567890,
-        10**100,
-    ):
-        check_jsonschema_validation(schema_in, target, should_validate=True)
-        check_voluptuous_validation(schema_out, target, should_validate=True)
-
-    # note: bool is a subclass of int in python, so False and True will
-    # validate.
-    for target in (
-        '',
-        'abc',
-        None,
-        {},
-        [],
-        1.0,
-        1.5,
-        float('inf'),
-        float('+inf'),
-        float('-inf'),
-        float('NaN'),
-        "123",
-    ):
-        check_jsonschema_validation(schema_in, target, should_validate=False)
-        check_voluptuous_validation(schema_out, target, should_validate=False)
-
-
-def test_type_number_schema():
-    schema_in = {'type': 'number'}
-    schema_out = to_voluptuous(schema_in)
-    for target in (
-        -1,
-        0,
-        1,
-        1.5,
-        float('inf'),
-        float('+inf'),
-        float('-inf'),
-        float('NaN'),
-    ):
-        check_jsonschema_validation(schema_in, target, should_validate=True)
-        check_voluptuous_validation(schema_out, target, should_validate=True)
-
-    # note: bool is a subclass of int in python, so False and True will
-    # validate.
-    for target in (
-        '',
-        'abc',
-        None,
-        {},
-        [],
-    ):
-        check_jsonschema_validation(schema_in, target, should_validate=False)
-        check_voluptuous_validation(schema_out, target, should_validate=False)
-
-
 def test_type_null_schema():
     schema_in = {'type': 'null'}
     schema_out = to_voluptuous(schema_in)
@@ -201,7 +90,7 @@ def test_type_null_schema():
         check_voluptuous_validation(schema_out, target, should_validate=False)
 
 
-def test_type_string_or_number_schema():
+def test_list_of_types_schema():
     schema_in = {'type': ['number', 'string']}
     schema_out = to_voluptuous(schema_in)
     for target in (
