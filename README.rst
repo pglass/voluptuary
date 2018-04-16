@@ -14,6 +14,10 @@
 
 This is a tool and library to convert a JSON Schema to a Voluptuous schema.
 
+.. code-block:: bash
+
+    $ pip install voluptuary
+
 Usage
 -----
 
