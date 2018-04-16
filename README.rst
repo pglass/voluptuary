@@ -68,10 +68,11 @@ Aside from that, this library follows the following principles:
    the (Draft 4) validator from `jsonschema`_.
 2. Proactive testing: This library includes and actively runs a comprehensive
    suite of tests to ensure behavior in the first point.
-3. Documentation: This library includes a list outlining support for JSON
-   Schema features/keywords, and strive to keep this up to date.
+3. Documentation: This library includes `detailed documentation`_ of support
+   for JSON Schema validation features, and strive to keep this up to date.
 
 
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _reasons listed here: https://github.com/alecthomas/voluptuous#why-use-voluptuous-over-another-validation-library
 .. _jsonschema: https://github.com/Julian/jsonschema
+.. _detailed documentation: jsonschema-support.md
