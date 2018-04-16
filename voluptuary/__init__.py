@@ -72,41 +72,80 @@ class Converter(object):
                 return self._convert(resolved)
         elif isinstance(schema, dict) and 'type' in schema:
             result = self._convert(schema['type'])
-            if 'properties' in schema:
-                for key, val in schema.get('properties', {}).items():
-                    result = result.extend({key: self._convert(val)})
-            if 'additionalProperties' in schema:
-                additional_properties = schema['additionalProperties']
-                if additional_properties is False:
-                    result.extra = voluptuous.PREVENT_EXTRA
-                elif additional_properties is True:
-                    result.extra = voluptuous.ALLOW_EXTRA
-                else:
-                    result = result.extend(
-                        {
-                            voluptuous.Extra: self.
-                            _convert(additional_properties),
-                        }
+            if schema['type'] == 'object':
+                required_props = schema.get('required', [])
+                properties = schema.get('properties', {})
+                additional_props = schema.get('additionalProperties')
+                # handle all keys in properties, careful to mark those fields
+                # that are required.
+                for key, val in properties.items():
+                    if key in required_props:
+                        result = result.extend(
+                            {
+                                voluptuous.Required(key): self._convert(val),
+                            }
+                        )
+                    else:
+                        result = result.extend({key: self._convert(val)})
+                for key in required_props:
+                    if key not in properties:
+                        # required fields not mentioned in properties must
+                        # respect the additionalProperties schema (if it is not
+                        # a bool). else, any value is accepted.
+                        if isinstance(additional_props, dict):
+                            result = result.extend(
+                                {
+                                    voluptuous.Required(key): self.
+                                    _convert(additional_props)
+                                }
+                            )
+                        else:
+                            result = result.extend(
+                                {
+                                    voluptuous.Required(key): object,
+                                }
+                            )
+
+                if 'additionalProperties' in schema:
+                    if additional_props is False:
+                        result.extra = voluptuous.PREVENT_EXTRA
+                    elif additional_props is True:
+                        result.extra = voluptuous.ALLOW_EXTRA
+                    else:
+                        result = result.extend(
+                            {
+                                voluptuous.Extra: self.
+                                _convert(additional_props),
+                            }
+                        )
+                if 'minProperties' in schema or 'maxProperties' in schema:
+                    length = voluptuous.Length(
+                        min=schema.get('minProperties'),
+                        max=schema.get('maxProperties'),
                     )
-            if 'items' in schema:
-                items = schema['items']
-                length = voluptuous.Length(
-                    min=schema.get('minItems'),
-                    max=schema.get('maxItems'),
-                )
-                if isinstance(items, dict):
-                    return Schema(All([self._convert(items)], length))
-                elif isinstance(items, list):
-                    array_validator = EnumArray(
-                        [self._convert(x) for x in items],
-                        additional_items=schema.get('additionalItems', True),
+                    result = Schema(All(result, length))
+            elif schema['type'] == 'array':
+                if 'items' in schema:
+                    items = schema['items']
+                    length = voluptuous.Length(
+                        min=schema.get('minItems'),
+                        max=schema.get('maxItems'),
                     )
-                    return Schema(All(array_validator, length))
-                else:
-                    raise Exception(
-                        "Invalid schema for `items`: {}".format(schema)
-                    )
-            if schema['type'] in ('integer', 'number'):
+                    if isinstance(items, dict):
+                        return Schema(All([self._convert(items)], length))
+                    elif isinstance(items, list):
+                        array_validator = EnumArray(
+                            [self._convert(x) for x in items],
+                            additional_items=schema.get(
+                                'additionalItems', True
+                            ),
+                        )
+                        return Schema(All(array_validator, length))
+                    else:
+                        raise Exception(
+                            "Invalid schema for `items`: {}".format(schema)
+                        )
+            elif schema['type'] in ('integer', 'number'):
                 _schemas = [result]
                 if 'multipleOf' in schema:
                     _schemas.append(MultipleOf(schema['multipleOf']))
@@ -179,11 +218,9 @@ def to_string(schema, warned=[]):
         result += '[' + ', '.join((to_string(x) for x in schema)) + ']'
     elif isinstance(schema, dict):
         result += '{'
+        items = [(to_string(k), to_string(v)) for k, v in schema.items()]
         result += ', '.join(
-            [
-                '%s: %s' % (to_string(k), to_string(v))
-                for k, v in sorted(schema.items(), key=lambda x: x[0])
-            ]
+            ['%s: %s' % item for item in sorted(items, key=lambda x: x[0])]
         )
         result += '}'
     elif hasattr(schema, '__name__'):

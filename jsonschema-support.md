@@ -60,14 +60,16 @@ n         | Unique Items                             |
 Supported | Feature                         | Example
 --------- | --------------------------------| -------
 Y         | `object` type                   | `{ "type": "object" }`
-n         | `minProperties`                 |
-n         | `maxProperties`                 |
-n         | `required`                      |
+Y         | `minProperties`                 | `{ "minProperties": 2 }`
+Y         | `maxProperties`                 | `{ "maxProperties": 5 }`
+Y         | `required`                      | `{ "required": ["id", "name"]}`
 Y         | `additionalProperties=False`    | `{ "additionalProperties": false }`
 Y         | `additionalProperties=<schema>` | `{ "additionalProperties": {"type": "string"}`
 Y         | `properties`                    | `{ "properties": { "key": { "type": "string" }}}`
 n         | `patternProperties`             |
 n         | `dependencies`                  |
+
+
 
 
 ### [other keywords](https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5)
@@ -117,3 +119,40 @@ n           | `ipv4`        |
 n           | `ipv6`        |
 n           | `ipv6`        |
 n           | `uri`         |
+
+
+Uncovertable Schemas
+--------------------
+
+### Conflict between required properties and additionalProperties=False
+
+The following schema has a conflict:
+
+- `id` is required
+- `id` is not listed in the properties, and `additionalProperties` is false
+
+```json
+{
+    "type": "object",
+    "required": ["name", "id"],
+    "properties": {
+        "name": {"type": "string"}
+    },
+    "additionalProperties": false
+}
+```
+
+This schema says that `id` must be both included and excluded, and I have
+not found a way to express this conflict in voluptuous.
+
+In this case, this library gives precedence to the `required` field. It will
+produce the following schema:
+
+```python
+# Requires both `id` and `name`. No extra fields.
+schema = Schema({
+    Required('id'): object,
+    Required('name'): Schema(str)
+})
+schema.extra = PREVENT_EXTRA
+```
